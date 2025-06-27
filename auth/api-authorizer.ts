@@ -12,12 +12,19 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
 
   const accessToken = authorizationHeader.split(" ")[1];
 
-  const { user } = await authsignal.validateSession({ accessToken, clientId });
+  try {
+    // Will throw an error if the access token is invalid
+    const { user } = await authsignal.validateSession({ accessToken, clientId });
 
-  return {
-    isAuthorized: true,
-    context: {
-      ...user,
-    },
-  };
+    return {
+      isAuthorized: true,
+      context: {
+        ...user,
+      },
+    };
+  } catch {
+    return {
+      isAuthorized: false,
+    };
+  }
 };
