@@ -13,6 +13,7 @@ provider:
         type: request
         identitySource: $request.header.authorization
         functionName: apiAuthorizer
+        enableSimpleResponses: true
 
 package:
   individually: true

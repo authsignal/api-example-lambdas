@@ -15,7 +15,9 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
   const { user } = await authsignal.validateSession({ accessToken, clientId });
 
   return {
-    principalId: user.userId,
-    context: user,
+    isAuthorized: true,
+    context: {
+      ...user,
+    },
   };
 };
