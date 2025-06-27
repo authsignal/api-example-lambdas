@@ -1,0 +1,68 @@
+service: api-example
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  environment:
+    AUTHSIGNAL_SECRET: ${env:AUTHSIGNAL_SECRET}
+    AUTHSIGNAL_URL: ${env:AUTHSIGNAL_URL}
+    AUTHSIGNAL_CLIENT: ${env:AUTHSIGNAL_CLIENT}
+  httpApi:
+    authorizers:
+      apiAuthorizer:
+        type: request
+        identitySource: $request.header.authorization
+        functionName: apiAuthorizer
+
+package:
+  individually: true
+
+functions:
+  initEmailSignIn:
+    handler: api/init-email-sign-in.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/email
+
+  signIn:
+    handler: api/sign-in.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in
+
+  signOut:
+    handler: api/sign-out.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-out
+
+  refreshSession:
+    handler: api/refresh-session.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/refresh
+
+  userProfile:
+    handler: api/user-profile.handler
+    events:
+      - httpApi:
+          method: get
+          path: /profile
+          authorizer:
+            name: apiAuthorizer
+
+  initPasskeyRegistration:
+    handler: api/init-passkey-registration.handler
+    events:
+      - httpApi:
+          method: post
+          path: /register/passkey
+          authorizer:
+            name: apiAuthorizer
+
+  apiAuthorizer:
+    handler: auth/api-authorizer.handler
