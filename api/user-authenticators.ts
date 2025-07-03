@@ -4,7 +4,7 @@ import { authsignal } from "../lib/authsignal";
 export const handler = async (event: APIGatewayProxyEventV2WithLambdaAuthorizer<any>) => {
   const { sub } = event.requestContext.authorizer.lambda;
 
-  const user = await authsignal.getUser({ userId: sub });
+  const userAuthenticators = await authsignal.getAuthenticators({ userId: sub });
 
-  return user;
+  return userAuthenticators;
 };

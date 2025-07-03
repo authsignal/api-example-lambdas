@@ -6,6 +6,7 @@ provider:
   environment:
     AUTHSIGNAL_SECRET: ${env:AUTHSIGNAL_SECRET}
     AUTHSIGNAL_URL: ${env:AUTHSIGNAL_URL}
+    AUTHSIGNAL_TENANT: ${env:AUTHSIGNAL_TENANT}
     AUTHSIGNAL_CLIENT: ${env:AUTHSIGNAL_CLIENT}
   httpApi:
     authorizers:
@@ -13,6 +14,11 @@ provider:
         type: request
         identitySource: $request.header.authorization
         functionName: apiAuthorizer
+        enableSimpleResponses: true
+      jwtAuthorizer:
+        type: request
+        identitySource: $request.header.authorization
+        functionName: jwtAuthorizer
         enableSimpleResponses: true
 
 package:
@@ -54,7 +60,16 @@ functions:
           method: get
           path: /profile
           authorizer:
-            name: apiAuthorizer
+            name: jwtAuthorizer
+
+  userAuthenticators:
+    handler: api/user-authenticators.handler
+    events:
+      - httpApi:
+          method: get
+          path: /authenticators
+          authorizer:
+            name: jwtAuthorizer
 
   initPasskeyRegistration:
     handler: api/init-passkey-registration.handler
@@ -67,3 +82,6 @@ functions:
 
   apiAuthorizer:
     handler: auth/api-authorizer.handler
+
+  jwtAuthorizer:
+    handler: auth/jwt-authorizer.handler
