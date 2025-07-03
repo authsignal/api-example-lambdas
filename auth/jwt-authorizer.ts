@@ -4,6 +4,7 @@ import jwksClient from "jwks-rsa";
 
 const apiUrl = process.env.AUTHSIGNAL_URL!;
 const tenantId = process.env.AUTHSIGNAL_TENANT!;
+const clientId = process.env.AUTHSIGNAL_CLIENT!;
 
 const jwks = jwksClient({
   jwksUri: `${apiUrl}/client/public/${tenantId}/.well-known/jwks`,
@@ -22,7 +23,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
     // Will throw an error if the access token is invalid
     const claims = await verifyTokenByJwksClient(accessToken);
 
-    if (claims.aud !== process.env.AUTHSIGNAL_CLIENT) {
+    if (claims.aud !== clientId) {
       throw new Error("Invalid audience");
     }
 
