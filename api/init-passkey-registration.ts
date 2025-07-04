@@ -1,9 +1,9 @@
 import { APIGatewayProxyEventV2WithLambdaAuthorizer } from "aws-lambda";
 import { authsignal } from "../lib/authsignal";
-import { RequestAuthorizer1Context } from "../auth/request-authorizer-1";
+import { LambdaAuthorizer1Context } from "../auth/lambda-authorizer-1";
 
 // Generates an Authsignal token for registering a new passkey via Client SDK
-export const handler = async (event: APIGatewayProxyEventV2WithLambdaAuthorizer<RequestAuthorizer1Context>) => {
+export const handler = async (event: APIGatewayProxyEventV2WithLambdaAuthorizer<LambdaAuthorizer1Context>) => {
   const userId = event.requestContext.authorizer.lambda.userId;
   const email = event.requestContext.authorizer.lambda.email;
 
