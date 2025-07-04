@@ -24,7 +24,7 @@ provider:
       requestAuthorizer2:
         type: request
         identitySource: $request.header.authorization
-        functionName: requestAuthorizer1
+        functionName: requestAuthorizer2
         enableSimpleResponses: true
 
 package:

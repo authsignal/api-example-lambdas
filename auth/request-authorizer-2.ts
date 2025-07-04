@@ -2,14 +2,9 @@ import { APIGatewayRequestAuthorizerEvent } from "aws-lambda";
 import jwt, { GetPublicKeyOrSecret } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 
-const apiUrl = process.env.AUTHSIGNAL_URL!;
-const tenantId = process.env.AUTHSIGNAL_TENANT!;
-const clientId = process.env.AUTHSIGNAL_CLIENT!;
+export type RequestAuthorizer2Context = jwt.JwtPayload & { sub: string };
 
-const jwks = jwksClient({
-  jwksUri: `${apiUrl}/client/public/${tenantId}/.well-known/jwks`,
-});
-
+// Request authorizer that uses a public JWKS endpoint to validate the access token
 export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
   const authorizationHeader = event.headers?.Authorization || event.headers?.authorization;
 
@@ -41,10 +36,10 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
 };
 
 // Verify access token using JWKS client
-async function verifyTokenByJwksClient(accessToken: string): Promise<jwt.JwtPayload> {
+export async function verifyTokenByJwksClient(accessToken: string): Promise<RequestAuthorizer2Context> {
   return new Promise((resolve, reject) => {
     jwt.verify(accessToken, getPublicKey, {}, function (err, decoded) {
-      if (!err && isDecodedJwtPayload(decoded)) {
+      if (!err && isValidJwtPayload(decoded)) {
         resolve(decoded);
       } else {
         reject(err ?? new Error("Unauthorized"));
@@ -66,6 +61,14 @@ const getPublicKey: GetPublicKeyOrSecret = (header, callback) => {
   });
 };
 
-function isDecodedJwtPayload(decoded?: jwt.JwtPayload | string): decoded is jwt.JwtPayload {
-  return typeof decoded === "object" && "sub" in decoded;
+function isValidJwtPayload(payload?: jwt.JwtPayload | string): payload is RequestAuthorizer2Context {
+  return typeof payload === "object" && "sub" in payload;
 }
+
+const apiUrl = process.env.AUTHSIGNAL_URL!;
+const tenantId = process.env.AUTHSIGNAL_TENANT!;
+const clientId = process.env.AUTHSIGNAL_CLIENT!;
+
+const jwks = jwksClient({
+  jwksUri: `${apiUrl}/client/public/${tenantId}/.well-known/jwks`,
+});

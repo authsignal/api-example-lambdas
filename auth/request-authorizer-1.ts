@@ -1,8 +1,10 @@
+import { UserAttributes } from "@authsignal/node";
 import { APIGatewayRequestAuthorizerEvent } from "aws-lambda";
 import { authsignal } from "../lib/authsignal";
 
-const clientId = process.env.AUTHSIGNAL_CLIENT!;
+export type RequestAuthorizer1Context = { userId: string } & UserAttributes;
 
+// Request authorizer that uses the Authsignal SDK to validate the access token
 export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
   const authorizationHeader = event.headers?.Authorization || event.headers?.authorization;
 
@@ -28,3 +30,5 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
     };
   }
 };
+
+const clientId = process.env.AUTHSIGNAL_CLIENT!;
