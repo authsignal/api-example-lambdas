@@ -10,15 +10,21 @@ provider:
     AUTHSIGNAL_CLIENT: ${env:AUTHSIGNAL_CLIENT}
   httpApi:
     authorizers:
-      apiAuthorizer:
-        type: request
-        identitySource: $request.header.authorization
-        functionName: apiAuthorizer
-        enableSimpleResponses: true
       jwtAuthorizer:
+        type: jwt
+        identitySource: $request.header.authorization
+        issuerUrl: ${env:AUTHSIGNAL_URL}/client/public/${env:AUTHSIGNAL_TENANT}
+        audience:
+          - ${env:AUTHSIGNAL_CLIENT}
+      requestAuthorizer1:
         type: request
         identitySource: $request.header.authorization
-        functionName: jwtAuthorizer
+        functionName: requestAuthorizer1
+        enableSimpleResponses: true
+      requestAuthorizer2:
+        type: request
+        identitySource: $request.header.authorization
+        functionName: requestAuthorizer1
         enableSimpleResponses: true
 
 package:
@@ -53,6 +59,15 @@ functions:
           method: post
           path: /sign-in/refresh
 
+  initPasskeyRegistration:
+    handler: api/init-passkey-registration.handler
+    events:
+      - httpApi:
+          method: post
+          path: /register/passkey
+          authorizer:
+            name: requestAuthorizer1
+
   userProfile:
     handler: api/user-profile.handler
     events:
@@ -60,7 +75,7 @@ functions:
           method: get
           path: /profile
           authorizer:
-            name: jwtAuthorizer
+            name: requestAuthorizer2
 
   userAuthenticators:
     handler: api/user-authenticators.handler
@@ -71,17 +86,8 @@ functions:
           authorizer:
             name: jwtAuthorizer
 
-  initPasskeyRegistration:
-    handler: api/init-passkey-registration.handler
-    events:
-      - httpApi:
-          method: post
-          path: /register/passkey
-          authorizer:
-            name: apiAuthorizer
+  requestAuthorizer1:
+    handler: auth/request-authorizer-1.handler
 
-  apiAuthorizer:
-    handler: auth/api-authorizer.handler
-
-  jwtAuthorizer:
-    handler: auth/jwt-authorizer.handler
+  requestAuthorizer2:
+    handler: auth/request-authorizer-2.handler
