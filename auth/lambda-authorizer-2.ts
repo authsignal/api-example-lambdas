@@ -2,9 +2,9 @@ import { APIGatewayRequestAuthorizerEvent } from "aws-lambda";
 import jwt, { GetPublicKeyOrSecret } from "jsonwebtoken";
 import jwksClient from "jwks-rsa";
 
-export type RequestAuthorizer2Context = jwt.JwtPayload & { sub: string };
+export type LambdaAuthorizer2Context = jwt.JwtPayload & { sub: string };
 
-// Request authorizer that uses a public JWKS endpoint to validate the access token
+// Lambda authorizer that uses a public JWKS endpoint to validate the access token
 export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
   const authorizationHeader = event.headers?.Authorization || event.headers?.authorization;
 
@@ -36,7 +36,7 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
 };
 
 // Verify access token using JWKS client
-export async function verifyTokenByJwksClient(accessToken: string): Promise<RequestAuthorizer2Context> {
+export async function verifyTokenByJwksClient(accessToken: string): Promise<LambdaAuthorizer2Context> {
   return new Promise((resolve, reject) => {
     jwt.verify(accessToken, getPublicKey, {}, function (err, decoded) {
       if (!err && isValidJwtPayload(decoded)) {
@@ -61,7 +61,7 @@ const getPublicKey: GetPublicKeyOrSecret = (header, callback) => {
   });
 };
 
-function isValidJwtPayload(payload?: jwt.JwtPayload | string): payload is RequestAuthorizer2Context {
+function isValidJwtPayload(payload?: jwt.JwtPayload | string): payload is LambdaAuthorizer2Context {
   return typeof payload === "object" && "sub" in payload;
 }
 

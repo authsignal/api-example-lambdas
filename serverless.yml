@@ -16,15 +16,15 @@ provider:
         issuerUrl: ${env:AUTHSIGNAL_URL}/client/public/${env:AUTHSIGNAL_TENANT}
         audience:
           - ${env:AUTHSIGNAL_CLIENT}
-      requestAuthorizer1:
+      lambdaAuthorizer1:
         type: request
         identitySource: $request.header.authorization
-        functionName: requestAuthorizer1
+        functionName: lambdaAuthorizer1
         enableSimpleResponses: true
-      requestAuthorizer2:
+      lambdaAuthorizer2:
         type: request
         identitySource: $request.header.authorization
-        functionName: requestAuthorizer2
+        functionName: lambdaAuthorizer2
         enableSimpleResponses: true
 
 package:
@@ -66,7 +66,7 @@ functions:
           method: post
           path: /register/passkey
           authorizer:
-            name: requestAuthorizer1
+            name: lambdaAuthorizer1
 
   userProfile:
     handler: api/user-profile.handler
@@ -75,7 +75,7 @@ functions:
           method: get
           path: /profile
           authorizer:
-            name: requestAuthorizer2
+            name: lambdaAuthorizer2
 
   userAuthenticators:
     handler: api/user-authenticators.handler
@@ -86,8 +86,8 @@ functions:
           authorizer:
             name: jwtAuthorizer
 
-  requestAuthorizer1:
-    handler: auth/request-authorizer-1.handler
+  lambdaAuthorizer1:
+    handler: auth/lambda-authorizer-1.handler
 
-  requestAuthorizer2:
-    handler: auth/request-authorizer-2.handler
+  lambdaAuthorizer2:
+    handler: auth/lambda-authorizer-2.handler
