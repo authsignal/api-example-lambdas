@@ -7,7 +7,7 @@
     "package": "serverless package"
   },
   "dependencies": {
-    "@authsignal/node": "^2.7.2",
+    "@authsignal/node": "^2.7.3",
     "jsonwebtoken": "^9.0.2",
     "jwks-rsa": "^3.2.0",
     "uuid": "^11.1.0"

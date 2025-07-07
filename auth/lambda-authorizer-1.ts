@@ -16,7 +16,10 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
 
   try {
     // Will throw an error if the access token is invalid
-    const { user } = await authsignal.validateSession({ accessToken, clientId });
+    const { user } = await authsignal.validateSession({
+      accessToken,
+      clientIds: [process.env.AUTHSIGNAL_CLIENT!],
+    });
 
     return {
       isAuthorized: true,
@@ -30,5 +33,3 @@ export const handler = async (event: APIGatewayRequestAuthorizerEvent) => {
     };
   }
 };
-
-const clientId = process.env.AUTHSIGNAL_CLIENT!;
