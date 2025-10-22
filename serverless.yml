@@ -58,6 +58,15 @@ functions:
           authorizer:
             name: jwtAuthorizer
 
+  initPushRegistration:
+    handler: api/init-push-registration.handler
+    events:
+      - httpApi:
+          method: post
+          path: /register/push
+          authorizer:
+            name: jwtAuthorizer
+
   userProfile:
     handler: api/user-profile.handler
     events:
