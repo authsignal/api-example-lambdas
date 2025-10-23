@@ -75,3 +75,10 @@ functions:
           path: /profile
           authorizer:
             name: jwtAuthorizer
+
+  testPush:
+    handler: api/test-push.handler
+    events:
+      - httpApi:
+          method: get
+          path: /push
