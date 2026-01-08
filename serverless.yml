@@ -28,12 +28,26 @@ functions:
           method: post
           path: /sign-in/email
 
-  signIn:
-    handler: api/sign-in.handler
+  finishEmailSignIn:
+    handler: api/finish-email-sign-in.handler
     events:
       - httpApi:
           method: post
-          path: /sign-in
+          path: /sign-in/email/verify
+
+  finishWhatsAppSignIn:
+    handler: api/finish-whatsapp-sign-in.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/whatsapp/verify
+
+  signInWithToken:
+    handler: api/sign-in-with-token.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/token
 
   signOut:
     handler: api/sign-out.handler
@@ -64,6 +78,33 @@ functions:
       - httpApi:
           method: post
           path: /register/push
+          authorizer:
+            name: jwtAuthorizer
+
+  initInAppRegistration:
+    handler: api/init-in-app-registration.handler
+    events:
+      - httpApi:
+          method: post
+          path: /register/in-app
+          authorizer:
+            name: jwtAuthorizer
+
+  initWhatsAppRegistration:
+    handler: api/init-whatsapp-registration.handler
+    events:
+      - httpApi:
+          method: post
+          path: /register/whatsapp
+          authorizer:
+            name: jwtAuthorizer
+
+  finishWhatsAppRegistration:
+    handler: api/finish-whatsapp-registration.handler
+    events:
+      - httpApi:
+          method: post
+          path: /register/whatsapp/verify
           authorizer:
             name: jwtAuthorizer
 

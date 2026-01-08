@@ -6,8 +6,11 @@ export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer) =>
 
   const user = await authsignal.getUser({ userId });
 
+  const userAuthenticators = await authsignal.getAuthenticators({ userId });
+
   return {
     userId,
     ...user,
+    authenticators: userAuthenticators,
   };
 };

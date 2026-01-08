@@ -18,6 +18,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBo
   const { accessToken, refreshToken } = await authsignal.createSession({
     token,
     clientId,
+    action: "signIn",
   });
 
   return {
