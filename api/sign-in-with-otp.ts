@@ -11,9 +11,6 @@ interface RequestBody {
 
 interface ResponseBody {
   isVerified: boolean;
-  isSecondFactorOtpRequired: boolean;
-  userId?: string;
-  idempotencyKey?: string;
   challengeId?: string;
   accessToken?: string;
   refreshToken?: string;
@@ -22,14 +19,15 @@ interface ResponseBody {
 const clientId = process.env.AUTHSIGNAL_CLIENT!;
 
 export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBody> => {
-  const { deviceId, challengeId, verificationCode } = JSON.parse(event.body!) as RequestBody;
+  const { challengeId, verificationCode, deviceId } = JSON.parse(event.body!) as RequestBody;
 
-  const { isVerified, email, phoneNumber } = await authsignal.verify({ challengeId, verificationCode });
+  const verifyResponse = await authsignal.verify({ challengeId, verificationCode });
+
+  const { isVerified, email, phoneNumber, verificationMethod } = verifyResponse;
 
   if (!isVerified || !email) {
     return {
       isVerified: false,
-      isSecondFactorOtpRequired: false,
     };
   }
 
@@ -37,8 +35,9 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBo
   // So we create a user on the fly if they don't exist
   const userId = await getOrCreateUser(email);
 
-  if (phoneNumber) {
-    // Check if 2nd factor OTP is required on device
+  // If we're verifying email OTP and the user has registered their phone number
+  // Then check if a 2nd OTP challenge is required on the device
+  if (phoneNumber && verificationMethod === VerificationMethod.EMAIL_OTP) {
     const { state, idempotencyKey } = await authsignal.track({
       action: "secondFactorOtp",
       userId,
@@ -49,7 +48,7 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBo
     });
 
     if (state === UserActionState.CHALLENGE_REQUIRED) {
-      const { challengeId } = await authsignal.challenge({
+      const secondChallengeResponse = await authsignal.challenge({
         userId,
         verificationMethod: VerificationMethod.WHATSAPP,
         action: "secondFactorOtp",
@@ -58,25 +57,17 @@ export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBo
 
       return {
         isVerified: true,
-        isSecondFactorOtpRequired: true,
-        userId,
-        idempotencyKey,
-        challengeId,
+        challengeId: secondChallengeResponse.challengeId,
       };
     }
   }
 
   const { token } = await authsignal.claimChallenge({ challengeId, userId });
 
-  const { accessToken, refreshToken } = await authsignal.createSession({
-    token,
-    clientId,
-    action: "signIn",
-  });
+  const { accessToken, refreshToken } = await authsignal.createSession({ clientId, token });
 
   return {
     isVerified: true,
-    isSecondFactorOtpRequired: false,
     accessToken,
     refreshToken,
   };

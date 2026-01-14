@@ -21,26 +21,19 @@ package:
   individually: true
 
 functions:
-  initEmailSignIn:
-    handler: api/init-email-sign-in.handler
+  sendOtp:
+    handler: api/send-otp.handler
     events:
       - httpApi:
           method: post
-          path: /sign-in/email
+          path: /otp
 
-  finishEmailSignIn:
-    handler: api/finish-email-sign-in.handler
+  signInWithOtp:
+    handler: api/sign-in-with-otp.handler
     events:
       - httpApi:
           method: post
-          path: /sign-in/email/verify
-
-  finishWhatsAppSignIn:
-    handler: api/finish-whatsapp-sign-in.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/whatsapp/verify
+          path: /sign-in/otp
 
   signInWithToken:
     handler: api/sign-in-with-token.handler
