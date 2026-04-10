@@ -1,0 +1,31 @@
+import { APIGatewayProxyEventV2 } from "aws-lambda";
+import { authsignalV2 } from "../lib/authsignal";
+import { AuthsignalError } from "@authsignal/node";
+
+interface RequestBody {
+  challengeId: string;
+}
+
+interface ResponseBody {
+  challengeId: string;
+  errorDescription?: string;
+  errorCode?: string;
+}
+
+export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBody> => {
+  const { challengeId } = JSON.parse(event.body!) as RequestBody;
+
+  try {
+    await authsignalV2.challenge({ challengeId });
+  } catch (err) {
+    if (err instanceof AuthsignalError) {
+      return {
+        challengeId,
+        errorCode: err.errorCode,
+        errorDescription: err.errorDescription,
+      };
+    }
+  }
+
+  return { challengeId };
+};

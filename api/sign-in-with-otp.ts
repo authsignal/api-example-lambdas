@@ -1,93 +1,82 @@
 import { APIGatewayProxyEventV2 } from "aws-lambda";
-import { v4 as uuid } from "uuid";
-import { authsignal } from "../lib/authsignal";
-import { UserActionState, VerificationMethod } from "@authsignal/node";
+import { v4 } from "uuid";
+import { authsignalV2 } from "../lib/authsignal";
+import { VerificationMethod } from "@authsignal/node";
 
 interface RequestBody {
   challengeId: string;
   verificationCode: string;
-  deviceId?: string;
 }
 
 interface ResponseBody {
   isVerified: boolean;
-  challengeId?: string;
-  accessToken?: string;
-  refreshToken?: string;
+  session?: {
+    accessToken: string;
+    refreshToken: string;
+  };
 }
 
-const clientId = process.env.AUTHSIGNAL_CLIENT!;
-
 export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBody> => {
-  const { challengeId, verificationCode, deviceId } = JSON.parse(event.body!) as RequestBody;
+  const { challengeId, verificationCode } = JSON.parse(event.body!) as RequestBody;
 
-  const verifyResponse = await authsignal.verify({ challengeId, verificationCode });
+  const verifyResponse = await authsignalV2.verify({ challengeId, verificationCode });
 
-  const { isVerified, email, phoneNumber, verificationMethod } = verifyResponse;
+  console.log("Verify response", verifyResponse);
 
-  if (!isVerified || !email) {
+  const { isVerified, action, attributes, session, user } = verifyResponse;
+
+  // OTP is invalid
+  if (!isVerified) {
     return {
       isVerified: false,
     };
   }
 
-  // Our flow combines sign-in and sign-up
-  // So we create a user on the fly if they don't exist
-  const userId = await getOrCreateUser(email);
-
-  // If we're verifying email OTP and the user has registered their phone number
-  // Then check if a 2nd OTP challenge is required on the device
-  if (phoneNumber && verificationMethod === VerificationMethod.EMAIL_OTP) {
-    const { state, idempotencyKey } = await authsignal.track({
-      action: "secondFactorOtp",
-      userId,
-      attributes: {
-        deviceId,
-        ipAddress: event.requestContext.http.sourceIp,
-      },
+  // OTP is valid but another verification method is required
+  // Initiate a second OTP challenge via WhatsApp
+  if (action?.state === "CHALLENGE_REQUIRED") {
+    await authsignalV2.challenge({
+      challengeId,
+      verificationMethod: VerificationMethod.WHATSAPP,
     });
 
-    if (state === UserActionState.CHALLENGE_REQUIRED) {
-      const secondChallengeResponse = await authsignal.challenge({
-        userId,
-        verificationMethod: VerificationMethod.WHATSAPP,
-        action: "secondFactorOtp",
-        idempotencyKey,
-      });
-
-      return {
-        isVerified: true,
-        challengeId: secondChallengeResponse.challengeId,
-      };
-    }
+    return {
+      isVerified: true,
+    };
   }
 
-  const { token } = await authsignal.claimChallenge({ challengeId, userId });
+  // OTP is valid and a user already exists
+  // Return session credentials
+  if (session) {
+    return {
+      isVerified: true,
+      session,
+    };
+  }
 
-  const { accessToken, refreshToken } = await authsignal.createSession({ clientId, token });
+  // OTP is valid but user doesn't exist in Authsignal
+  // Identify the user and then return session credentials
+  if (!user) {
+    const userId = await getOrCreateYourUser(attributes?.email!);
 
-  return {
-    isVerified: true,
-    accessToken,
-    refreshToken,
-  };
+    const { session } = await authsignalV2.identifyUser({
+      userId,
+      challengeId,
+    });
+
+    return {
+      isVerified: true,
+      session,
+    };
+  }
+
+  throw new Error("Sign-in failed - invalid state");
 };
 
-async function getOrCreateUser(email: string) {
-  const { users } = await authsignal.queryUsers({ email });
-
-  if (users.length > 0) {
-    return users[0].userId;
-  }
-
-  const userId = uuid();
-
-  await authsignal.updateUser({
-    userId,
-    attributes: {
-      email,
-    },
-  });
+// In a real implementation you would lookup the user by email in your DB or IdP
+// This examples uses Authsignal as the user DB so we just generate a new user ID
+async function getOrCreateYourUser(_email: string): Promise<string> {
+  const userId = v4();
 
   return userId;
 }

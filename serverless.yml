@@ -13,7 +13,7 @@ provider:
       jwtAuthorizer:
         type: jwt
         identitySource: $request.header.authorization
-        issuerUrl: ${env:AUTHSIGNAL_URL}/client/public/${env:AUTHSIGNAL_TENANT}
+        issuerUrl: ${env:AUTHSIGNAL_URL}/v1/client/public/${env:AUTHSIGNAL_TENANT}
         audience:
           - ${env:AUTHSIGNAL_CLIENT}
 

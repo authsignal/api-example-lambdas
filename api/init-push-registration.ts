@@ -5,6 +5,12 @@ import { authsignal } from "../lib/authsignal";
 export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer) => {
   const userId = event.requestContext.authorizer.jwt.claims.sub as string;
 
+  if (!userId) {
+    throw new Error("Unauthorized");
+  }
+
+  console.log("userId", userId);
+
   const { token } = await authsignal.track({
     userId,
     action: "registerPush",

@@ -1,10 +1,8 @@
 import { APIGatewayProxyEventV2 } from "aws-lambda";
-import { authsignal } from "../lib/authsignal";
-import { AuthsignalError } from "@authsignal/node";
+import { authsignalV2 } from "../lib/authsignal";
 
 interface RequestBody {
-  challengeId?: string;
-  verificationMethod?: "EMAIL_OTP" | "WHATSAPP";
+  verificationMethod: "EMAIL_OTP" | "WHATSAPP";
   email?: string;
   phoneNumber?: string;
   deviceId?: string;
@@ -16,36 +14,26 @@ interface ResponseBody {
   errorCode?: string;
 }
 
+const clientId = process.env.AUTHSIGNAL_CLIENT!;
+
 export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBody> => {
-  const { challengeId, email, phoneNumber, verificationMethod, deviceId } = JSON.parse(event.body!) as RequestBody;
+  const { email, phoneNumber, verificationMethod, deviceId } = JSON.parse(event.body!) as RequestBody;
 
-  // Handle re-send
-  if (challengeId) {
-    try {
-      await authsignal.challenge({ challengeId });
-    } catch (err) {
-      if (err instanceof AuthsignalError) {
-        return {
-          challengeId,
-          errorCode: err.errorCode,
-          errorDescription: err.errorDescription,
-        };
-      }
-    }
-
-    return { challengeId };
-  }
-
-  const response = await authsignal.challenge({
+  const challengeRequest = {
+    actionCode: "signIn",
     verificationMethod,
-    email,
-    phoneNumber,
-    action: "signIn",
-    ipAddress: event.requestContext.http.sourceIp,
-    deviceId,
-  });
+    clientId,
+    attributes: {
+      email,
+      phoneNumber,
+      deviceId,
+      ipAddress: event.requestContext.http.sourceIp,
+    },
+  };
+
+  const { challengeId } = await authsignalV2.challenge(challengeRequest);
 
   return {
-    challengeId: response.challengeId,
+    challengeId,
   };
 };
