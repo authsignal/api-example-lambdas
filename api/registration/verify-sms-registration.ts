@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2WithJWTAuthorizer } from "aws-lambda";
-import { authsignal } from "../lib/authsignal";
+import { authsignal } from "../../lib/authsignal";
 
 interface RequestBody {
   challengeId: string;

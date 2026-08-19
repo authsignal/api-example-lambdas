@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2WithJWTAuthorizer } from "aws-lambda";
-import { authsignal } from "../lib/authsignal";
+import { authsignal } from "../../lib/authsignal";
 import { AuthScope } from "@authsignal/node";
 
 interface RequestBody {
@@ -17,13 +17,11 @@ export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer): P
     throw new Error("Unauthorized");
   }
 
-  console.log("userId", userId);
-
   const { phoneNumber } = JSON.parse(event.body!) as RequestBody;
 
   const { challengeId } = await authsignal.challenge({
     userId,
-    verificationMethod: "WHATSAPP",
+    verificationMethod: "SMS",
     phoneNumber,
     action: "enrollPhoneNumber",
     ipAddress: event.requestContext.http.sourceIp,

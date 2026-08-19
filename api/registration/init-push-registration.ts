@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2WithJWTAuthorizer } from "aws-lambda";
-import { authsignal } from "../lib/authsignal";
+import { authsignal } from "../../lib/authsignal";
 
 // Generates an Authsignal token for registering for push verification via Client SDK
 export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer) => {
@@ -8,8 +8,6 @@ export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer) =>
   if (!userId) {
     throw new Error("Unauthorized");
   }
-
-  console.log("userId", userId);
 
   const { token } = await authsignal.track({
     userId,

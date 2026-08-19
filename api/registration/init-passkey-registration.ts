@@ -1,15 +1,17 @@
 import { APIGatewayProxyEventV2WithJWTAuthorizer } from "aws-lambda";
-import { authsignal } from "../lib/authsignal";
+import { authsignal } from "../../lib/authsignal";
 
-// Generates an Authsignal token for registering for in-app verification via Client SDK
+// Generates an Authsignal token for registering a new passkey via Client SDK
 export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer) => {
   const userId = event.requestContext.authorizer.jwt.claims.sub as string;
+  const email = event.requestContext.authorizer.jwt.claims.email as string;
 
   const { token } = await authsignal.track({
     userId,
-    action: "registerInApp",
+    action: "registerPasskey",
     attributes: {
       scope: "add:authenticators",
+      email,
     },
   });
 

@@ -21,26 +21,47 @@ package:
   individually: true
 
 functions:
-  sendOtp:
-    handler: api/send-otp.handler
+  initFlow:
+    handler: api/sign-in/init-flow.handler
     events:
       - httpApi:
           method: post
-          path: /otp
+          path: /sign-in
 
-  signInWithOtp:
-    handler: api/sign-in-with-otp.handler
+  verifyFlow:
+    handler: api/sign-in/verify-flow.handler
     events:
       - httpApi:
           method: post
-          path: /sign-in/otp
+          path: /sign-in/verify
 
-  signInWithToken:
-    handler: api/sign-in-with-token.handler
+  sendEmail:
+    handler: api/sign-in/send-email.handler
     events:
       - httpApi:
           method: post
-          path: /sign-in/token
+          path: /sign-in/email
+
+  verifyEmail:
+    handler: api/sign-in/verify-email.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/email/verify
+
+  sendSms:
+    handler: api/sign-in/send-sms.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/sms
+
+  verifySms:
+    handler: api/sign-in/verify-sms.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/sms/verify
 
   signOut:
     handler: api/sign-out.handler
@@ -57,7 +78,7 @@ functions:
           path: /sign-in/refresh
 
   initPasskeyRegistration:
-    handler: api/init-passkey-registration.handler
+    handler: api/registration/init-passkey-registration.handler
     events:
       - httpApi:
           method: post
@@ -66,7 +87,7 @@ functions:
             name: jwtAuthorizer
 
   initPushRegistration:
-    handler: api/init-push-registration.handler
+    handler: api/registration/init-push-registration.handler
     events:
       - httpApi:
           method: post
@@ -75,7 +96,7 @@ functions:
             name: jwtAuthorizer
 
   initInAppRegistration:
-    handler: api/init-in-app-registration.handler
+    handler: api/registration/init-in-app-registration.handler
     events:
       - httpApi:
           method: post
@@ -83,21 +104,21 @@ functions:
           authorizer:
             name: jwtAuthorizer
 
-  initWhatsAppRegistration:
-    handler: api/init-whatsapp-registration.handler
+  initSmsRegistration:
+    handler: api/registration/init-sms-registration.handler
     events:
       - httpApi:
           method: post
-          path: /register/whatsapp
+          path: /register/sms
           authorizer:
             name: jwtAuthorizer
 
-  finishWhatsAppRegistration:
-    handler: api/finish-whatsapp-registration.handler
+  verifySmsRegistration:
+    handler: api/registration/verify-sms-registration.handler
     events:
       - httpApi:
           method: post
-          path: /register/whatsapp/verify
+          path: /register/sms/verify
           authorizer:
             name: jwtAuthorizer
 
