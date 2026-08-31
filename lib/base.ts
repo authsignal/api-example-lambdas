@@ -22,11 +22,11 @@ export class AuthsignalBaseV2 {
     };
   }
 
-  protected getClientRequestConfig(authorizationToken: string) {
+  protected getClientRequestConfig(challengeToken: string) {
     return {
       headers: {
         "User-Agent": "authsignal-node",
-        "X-Authsignal-Authorization-Token": authorizationToken,
+        "X-Authsignal-Challenge-Token": challengeToken,
       },
     };
   }

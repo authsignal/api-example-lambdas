@@ -1,22 +1,21 @@
-import { ActionAttributes } from "@authsignal/node";
 import axios from "axios";
 import { AuthsignalBaseV2 } from "./base";
-import { UserAttributes } from "./types";
+import { FlowUser, FlowAction } from "./types";
 
-type ChallengeEmailRequest = {
-  authorizationToken: string;
+type ChallengeRequest = {
+  challengeToken: string;
   email?: string;
 };
 
-type VerifyEmailRequest = {
-  authorizationToken: string;
+type VerifyRequest = {
+  challengeToken: string;
   verificationCode: string;
 };
 
-type VerifyEmailResponse = {
-  action: ActionAttributes;
-  authorizationToken?: string;
-  user: UserAttributes;
+type VerifyResponse = {
+  action: FlowAction;
+  challengeToken?: string;
+  user: FlowUser;
 };
 
 export class AuthsignalEmailV2 extends AuthsignalBaseV2 {
@@ -24,14 +23,14 @@ export class AuthsignalEmailV2 extends AuthsignalBaseV2 {
     super({ apiSecretKey, apiUrl });
   }
 
-  async challenge(request: ChallengeEmailRequest): Promise<void> {
-    const { authorizationToken, email } = request;
+  async challenge(request: ChallengeRequest): Promise<void> {
+    const { challengeToken, email } = request;
 
-    const url = `${this.apiUrl}/v2/client/challenge/email-otp`;
+    const url = `${this.apiUrl}/client/flows/challenge/email-otp`;
 
     const body = { email };
 
-    const config = this.getClientRequestConfig(authorizationToken);
+    const config = this.getClientRequestConfig(challengeToken);
 
     try {
       await axios.post(url, body, config);
@@ -40,17 +39,17 @@ export class AuthsignalEmailV2 extends AuthsignalBaseV2 {
     }
   }
 
-  public async verify(request: VerifyEmailRequest): Promise<VerifyEmailResponse> {
-    const { authorizationToken, verificationCode } = request;
+  public async verify(request: VerifyRequest): Promise<VerifyResponse> {
+    const { challengeToken, verificationCode } = request;
 
-    const url = `${this.apiUrl}/v2/client/verify/email-otp`;
+    const url = `${this.apiUrl}/client/flows/verify/email-otp`;
 
     const body = { verificationCode };
 
-    const config = this.getClientRequestConfig(authorizationToken);
+    const config = this.getClientRequestConfig(challengeToken);
 
     try {
-      const response = await axios.post<VerifyEmailResponse>(url, body, config);
+      const response = await axios.post<VerifyResponse>(url, body, config);
 
       return response.data;
     } catch (error) {

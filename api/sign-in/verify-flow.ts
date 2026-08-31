@@ -1,8 +1,10 @@
-import { APIGatewayProxyEventV2 } from "aws-lambda";
+import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { authsignalV2 } from "../../lib/authsignal";
+import { toErrorResponse } from "../../lib/http";
+import { HttpError } from "../../lib/http-error";
 
 interface RequestBody {
-  authorizationToken: string;
+  challengeToken: string;
 }
 
 interface ResponseBody {
@@ -10,17 +12,23 @@ interface ResponseBody {
   refreshToken: string;
 }
 
-export const handler = async (event: APIGatewayProxyEventV2): Promise<ResponseBody> => {
-  const { authorizationToken } = JSON.parse(event.body!) as RequestBody;
+export const handler = async (
+  event: APIGatewayProxyEventV2,
+): Promise<ResponseBody | APIGatewayProxyStructuredResultV2> => {
+  const { challengeToken } = JSON.parse(event.body!) as RequestBody;
 
-  const { action, session } = await authsignalV2.verifyFlow({
-    actionCode: "signInV2",
-    authorizationToken,
-  });
+  try {
+    const { action, session } = await authsignalV2.verifyFlow({
+      actionCode: "signInV2",
+      challengeToken,
+    });
 
-  if (action.state !== "CHALLENGE_SUCCEEDED" || !session) {
-    throw new Error(`Sign-in failed. Current action state: ${action.state}`);
+    if (action.state !== "CHALLENGE_SUCCEEDED" || !session) {
+      throw new HttpError(401, "invalid_action_state", `Sign-in failed. Current action state: ${action.state}`);
+    }
+
+    return session;
+  } catch (error) {
+    return toErrorResponse(error);
   }
-
-  return session;
 };

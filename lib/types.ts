@@ -2,24 +2,24 @@ import { VerificationMethod } from "@authsignal/node";
 
 export type UserLookup = { userId: string } | { email: string } | { phoneNumber: string };
 
-export type ActionAttributes = {
-  state: ChallengeState;
-  completedSteps: CompletedVerificationStep[];
-  nextStep?: VerificationStep;
+export type FlowAction = {
+  state: FlowState;
+  completedSteps: CompletedActionStep[];
+  nextStep?: ActionStep;
 };
 
-export type VerificationStep = {
-  stepType: VerificationStepType;
+export type ActionStep = {
+  stepType: ActionStepType;
   verificationMethods: VerificationMethod[];
 };
 
-export type CompletedVerificationStep = {
-  stepType: VerificationStepType;
+export type CompletedActionStep = {
+  stepType: ActionStepType;
   verificationMethod?: VerificationMethod;
   userAuthenticatorId: string;
 };
 
-export enum VerificationStepType {
+export enum ActionStepType {
   VERIFICATION_REQUIRED = "VERIFICATION_REQUIRED",
   ENROLLMENT_REQUIRED = "ENROLLMENT_REQUIRED",
   ENROLLMENT_OPTIONAL = "ENROLLMENT_OPTIONAL",
@@ -33,13 +33,11 @@ export type ChallengeAttributes = {
   locale?: string;
 };
 
-export type UserAttributes = {
+export type FlowUser = {
   userId: string;
   isIdentified: boolean;
   email?: string;
-  emailVerified: boolean;
   phoneNumber?: string;
-  phoneNumberVerified: boolean;
   username?: string;
   displayName?: string;
   authenticators: UserAuthenticatorAttributes[];
@@ -54,12 +52,12 @@ export type UserAuthenticatorAttributes = {
   displayName: string;
 };
 
-export type SessionAttributes = {
+export type AuthenticationSession = {
   accessToken: string;
   refreshToken: string;
 };
 
-export enum ChallengeState {
+export enum FlowState {
   CHALLENGE_REQUIRED = "CHALLENGE_REQUIRED",
   CHALLENGE_SUCCEEDED = "CHALLENGE_SUCCEEDED",
   CHALLENGE_FAILED = "CHALLENGE_FAILED",

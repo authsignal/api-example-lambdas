@@ -1,22 +1,21 @@
-import { ActionAttributes } from "@authsignal/node";
 import axios from "axios";
 import { AuthsignalBaseV2 } from "./base";
-import { UserAttributes } from "./types";
+import { FlowUser, FlowAction } from "./types";
 
-type ChallengeWhatsAppRequest = {
-  authorizationToken: string;
+type ChallengeRequest = {
+  challengeToken: string;
   phoneNumber?: string;
 };
 
-type VerifyWhatsAppRequest = {
-  authorizationToken: string;
+type VerifyRequest = {
+  challengeToken: string;
   verificationCode: string;
 };
 
-type VerifyWhatsAppResponse = {
-  action: ActionAttributes;
-  authorizationToken?: string;
-  user: UserAttributes;
+type VerifyResponse = {
+  action: FlowAction;
+  challengeToken?: string;
+  user: FlowUser;
 };
 
 export class AuthsignalWhatsAppV2 extends AuthsignalBaseV2 {
@@ -24,14 +23,14 @@ export class AuthsignalWhatsAppV2 extends AuthsignalBaseV2 {
     super({ apiSecretKey, apiUrl });
   }
 
-  async challenge(request: ChallengeWhatsAppRequest): Promise<void> {
-    const { authorizationToken, phoneNumber } = request;
+  async challenge(request: ChallengeRequest): Promise<void> {
+    const { challengeToken, phoneNumber } = request;
 
-    const url = `${this.apiUrl}/v2/client/challenge/whatsapp`;
+    const url = `${this.apiUrl}/client/flows/challenge/whatsapp`;
 
     const body = { phoneNumber };
 
-    const config = this.getClientRequestConfig(authorizationToken);
+    const config = this.getClientRequestConfig(challengeToken);
 
     try {
       await axios.post(url, body, config);
@@ -40,17 +39,17 @@ export class AuthsignalWhatsAppV2 extends AuthsignalBaseV2 {
     }
   }
 
-  public async verify(request: VerifyWhatsAppRequest): Promise<VerifyWhatsAppResponse> {
-    const { authorizationToken, verificationCode } = request;
+  public async verify(request: VerifyRequest): Promise<VerifyResponse> {
+    const { challengeToken, verificationCode } = request;
 
-    const url = `${this.apiUrl}/v2/client/verify/whatsapp`;
+    const url = `${this.apiUrl}/client/flows/verify/whatsapp`;
 
     const body = { verificationCode };
 
-    const config = this.getClientRequestConfig(authorizationToken);
+    const config = this.getClientRequestConfig(challengeToken);
 
     try {
-      const response = await axios.post<VerifyWhatsAppResponse>(url, body, config);
+      const response = await axios.post<VerifyResponse>(url, body, config);
 
       return response.data;
     } catch (error) {

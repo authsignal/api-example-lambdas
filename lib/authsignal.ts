@@ -1,6 +1,6 @@
-import { ActionAttributes, Authsignal, UserAttributes, VerificationMethod } from "@authsignal/node";
-import axios, { AxiosError } from "axios";
-import { ChallengeAttributes, SessionAttributes, UserLookup } from "./types";
+import { Authsignal } from "@authsignal/node";
+import axios from "axios";
+import { ChallengeAttributes, AuthenticationSession, UserLookup, FlowAction, FlowUser } from "./types";
 import { AuthsignalBaseV2 } from "./base";
 import { AuthsignalEmailV2 } from "./email";
 import { AuthsignalSmsV2 } from "./sms";
@@ -9,40 +9,40 @@ import { AuthsignalWhatsAppV2 } from "./whatsapp";
 const apiSecretKey = process.env.AUTHSIGNAL_SECRET!;
 const apiUrl = process.env.AUTHSIGNAL_URL!;
 
-export const authsignal = new Authsignal({ apiSecretKey, apiUrl: `${apiUrl}/v1` });
+export const authsignal = new Authsignal({ apiSecretKey, apiUrl });
 
-type InitFlowRequest = {
+type StartFlowRequest = {
   actionCode: string;
   attributes?: ChallengeAttributes;
   clientId?: string;
   user?: UserLookup;
 };
 
-type InitFlowResponse = {
-  action: ActionAttributes;
-  authorizationToken: string;
-  user?: UserAttributes;
+type StartFlowResponse = {
+  action: FlowAction;
+  challengeToken: string;
+  user?: FlowUser;
 };
 
 type VerifyFlowRequest = {
   actionCode: string;
-  authorizationToken: string;
+  challengeToken: string;
 };
 
 type VerifyFlowResponse = {
-  action: ActionAttributes;
-  session?: SessionAttributes;
-  user?: UserAttributes;
+  action: FlowAction;
+  session?: AuthenticationSession;
+  user?: FlowUser;
 };
 
 type IdentifyUserRequest = {
   userId: string;
-  authorizationToken: string;
+  challengeToken: string;
 };
 
 type IdentifyUserResponse = {
   userId: string;
-  session?: SessionAttributes;
+  session?: AuthenticationSession;
 };
 
 class AuthsignalV2 extends AuthsignalBaseV2 {
@@ -58,13 +58,13 @@ class AuthsignalV2 extends AuthsignalBaseV2 {
     this.whatsapp = new AuthsignalWhatsAppV2(params);
   }
 
-  public async initFlow(request: InitFlowRequest): Promise<InitFlowResponse> {
-    const url = `${this.apiUrl}/v2/challenge`;
+  public async startFlow(request: StartFlowRequest): Promise<StartFlowResponse> {
+    const url = `${this.apiUrl}/flows`;
 
     const config = this.getServerRequestConfig();
 
     try {
-      const response = await axios.post<InitFlowResponse>(url, request, config);
+      const response = await axios.post<StartFlowResponse>(url, request, config);
 
       return response.data;
     } catch (error) {
@@ -73,7 +73,7 @@ class AuthsignalV2 extends AuthsignalBaseV2 {
   }
 
   public async verifyFlow(request: VerifyFlowRequest): Promise<VerifyFlowResponse> {
-    const url = `${this.apiUrl}/v2/verify`;
+    const url = `${this.apiUrl}/flows/verify`;
 
     const config = this.getServerRequestConfig();
 
@@ -87,7 +87,7 @@ class AuthsignalV2 extends AuthsignalBaseV2 {
   }
 
   public async identifyUser(request: IdentifyUserRequest): Promise<IdentifyUserResponse> {
-    const url = `${this.apiUrl}/v1/identify`;
+    const url = `${this.apiUrl}/identify`;
 
     const config = this.getServerRequestConfig();
 
@@ -99,34 +99,6 @@ class AuthsignalV2 extends AuthsignalBaseV2 {
       throw this.mapToAuthsignalError(error);
     }
   }
-}
-
-class AuthsignalError extends Error {
-  statusCode: number;
-  errorCode: string;
-  errorDescription?: string;
-  axiosError?: AxiosError;
-
-  constructor(statusCode: number, errorCode: string, errorDescription?: string, axiosError?: AxiosError) {
-    const message = formatMessage(statusCode, errorCode, errorDescription);
-
-    super(message);
-
-    this.name = "AuthsignalError";
-
-    this.statusCode = statusCode;
-    this.errorCode = errorCode;
-    this.errorDescription = errorDescription;
-    this.axiosError = axiosError;
-  }
-}
-
-function formatMessage(statusCode: number, errorCode: string, errorDescription?: string) {
-  return `AuthsignalError: ${statusCode} - ${formatDescription(errorCode, errorDescription)}`;
-}
-
-function formatDescription(errorCode: string, errorDescription?: string) {
-  return errorDescription && errorDescription.length > 0 ? errorDescription : errorCode;
 }
 
 export const authsignalV2 = new AuthsignalV2({ apiSecretKey, apiUrl });
