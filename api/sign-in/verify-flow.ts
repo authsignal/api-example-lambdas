@@ -1,5 +1,5 @@
 import { APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
-import { authsignalV2 } from "../../lib/authsignal";
+import { authsignal } from "../../lib/authsignal";
 import { toErrorResponse } from "../../lib/http";
 import { HttpError } from "../../lib/http-error";
 
@@ -18,7 +18,7 @@ export const handler = async (
   const { challengeToken } = JSON.parse(event.body!) as RequestBody;
 
   try {
-    const { action, session } = await authsignalV2.verifyFlow({
+    const { action, session } = await authsignal.verifyFlow({
       actionCode: "signInV2",
       challengeToken,
     });

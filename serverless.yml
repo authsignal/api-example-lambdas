@@ -63,6 +63,20 @@ functions:
           method: post
           path: /sign-in/sms/verify
 
+  signInWithPin:
+    handler: api/sign-in/sign-in-with-pin.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/pin
+
+  signInWithPasskey:
+    handler: api/sign-in/sign-in-with-passkey.handler
+    events:
+      - httpApi:
+          method: post
+          path: /sign-in/passkey
+
   signOut:
     handler: api/sign-out.handler
     events:
