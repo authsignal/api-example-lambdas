@@ -1,21 +1,25 @@
 import { APIGatewayProxyEventV2WithJWTAuthorizer } from "aws-lambda";
 import { authsignal } from "../../lib/authsignal";
+import { toErrorResponse } from "../../lib/http";
 
-// Generates an Authsignal token for registering a new passkey via Client SDK
+// Starts a flow for registering a new passkey via the Authsignal Flows SDK
 export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer) => {
   const userId = event.requestContext.authorizer.jwt.claims.sub as string;
-  const email = event.requestContext.authorizer.jwt.claims.email as string;
 
-  const { token } = await authsignal.track({
-    userId,
-    action: "registerPasskey",
-    attributes: {
-      scope: "add:authenticators",
-      email,
-    },
-  });
+  try {
+    const { challengeToken } = await authsignal.startFlow({
+      actionCode: "registerPasskeyV2",
+      user: { userId },
+      clientId: process.env.AUTHSIGNAL_CLIENT,
+      attributes: {
+        ipAddress: event.requestContext.http.sourceIp,
+      },
+    });
 
-  return {
-    token,
-  };
+    return {
+      challengeToken,
+    };
+  } catch (error) {
+    return toErrorResponse(error);
+  }
 };

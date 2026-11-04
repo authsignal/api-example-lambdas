@@ -21,76 +21,6 @@ package:
   individually: true
 
 functions:
-  startFlow:
-    handler: api/sign-in/start-flow.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in
-
-  verifyFlow:
-    handler: api/sign-in/verify-flow.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/verify
-
-  sendEmail:
-    handler: api/sign-in/send-email.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/email
-
-  verifyEmail:
-    handler: api/sign-in/verify-email.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/email/verify
-
-  sendSms:
-    handler: api/sign-in/send-sms.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/sms
-
-  verifySms:
-    handler: api/sign-in/verify-sms.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/sms/verify
-
-  signInWithPin:
-    handler: api/sign-in/sign-in-with-pin.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/pin
-
-  signInWithPasskey:
-    handler: api/sign-in/sign-in-with-passkey.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/passkey
-
-  signOut:
-    handler: api/sign-out.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-out
-
-  refreshSession:
-    handler: api/refresh-session.handler
-    events:
-      - httpApi:
-          method: post
-          path: /sign-in/refresh
-
   initPasskeyRegistration:
     handler: api/registration/init-passkey-registration.handler
     events:
@@ -115,24 +45,6 @@ functions:
       - httpApi:
           method: post
           path: /register/in-app
-          authorizer:
-            name: jwtAuthorizer
-
-  initSmsRegistration:
-    handler: api/registration/init-sms-registration.handler
-    events:
-      - httpApi:
-          method: post
-          path: /register/sms
-          authorizer:
-            name: jwtAuthorizer
-
-  verifySmsRegistration:
-    handler: api/registration/verify-sms-registration.handler
-    events:
-      - httpApi:
-          method: post
-          path: /register/sms/verify
           authorizer:
             name: jwtAuthorizer
 
