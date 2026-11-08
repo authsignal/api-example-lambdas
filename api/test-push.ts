@@ -1,6 +1,9 @@
 import { APIGatewayProxyEventV2 } from "aws-lambda";
 import { authsignal } from "../lib/authsignal";
+import { toErrorResponse } from "../lib/http";
 
+// Starts a flow with a push verification step for a user and sends the push challenge to their device.
+// Poll /client/flows/verify/push with the returned challenge token to see the outcome.
 export const handler = async (event: APIGatewayProxyEventV2) => {
   const email = event.queryStringParameters?.email;
 
@@ -20,18 +23,36 @@ export const handler = async (event: APIGatewayProxyEventV2) => {
     };
   }
 
-  const userId = users[0].userId;
+  try {
+    const { challengeToken } = await authsignal.startFlow({
+      actionCode: "signInWithPushV2",
+      user: { userId: users[0].userId },
+      clientId: process.env.AUTHSIGNAL_CLIENT,
+    });
 
-  const { url } = await authsignal.track({
-    userId,
-    action: "signInWithPush",
-  });
+    const response = await fetch(`${process.env.AUTHSIGNAL_URL}/client/flows/challenge/push`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Authsignal-Challenge-Token": challengeToken,
+      },
+      body: JSON.stringify({}),
+    });
 
-  return {
-    statusCode: 302,
-    headers: {
-      Location: url,
-    },
-    body: "",
-  };
+    if (!response.ok) {
+      return {
+        statusCode: response.status,
+        body: await response.text(),
+      };
+    }
+
+    const { verificationCode } = (await response.json()) as { verificationCode?: string };
+
+    return {
+      challengeToken,
+      verificationCode,
+    };
+  } catch (error) {
+    return toErrorResponse(error);
+  }
 };

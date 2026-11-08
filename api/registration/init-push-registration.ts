@@ -1,23 +1,25 @@
 import { APIGatewayProxyEventV2WithJWTAuthorizer } from "aws-lambda";
 import { authsignal } from "../../lib/authsignal";
+import { toErrorResponse } from "../../lib/http";
 
-// Generates an Authsignal token for registering for push verification via Client SDK
+// Starts a flow for registering a push credential via the Authsignal Flows SDK
 export const handler = async (event: APIGatewayProxyEventV2WithJWTAuthorizer) => {
   const userId = event.requestContext.authorizer.jwt.claims.sub as string;
 
-  if (!userId) {
-    throw new Error("Unauthorized");
+  try {
+    const { challengeToken } = await authsignal.startFlow({
+      actionCode: "registerPushV2",
+      user: { userId },
+      clientId: process.env.AUTHSIGNAL_CLIENT,
+      attributes: {
+        ipAddress: event.requestContext.http.sourceIp,
+      },
+    });
+
+    return {
+      challengeToken,
+    };
+  } catch (error) {
+    return toErrorResponse(error);
   }
-
-  const { token } = await authsignal.track({
-    userId,
-    action: "registerPush",
-    attributes: {
-      scope: "add:authenticators",
-    },
-  });
-
-  return {
-    token,
-  };
 };
